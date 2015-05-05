@@ -15,16 +15,15 @@ module.exports = function (grunt) {
     , 'vendor/cryptojs/footer.js'
   ]
 
-  grunt.loadNpmTasks('grunt-contrib-clean')
-  grunt.loadNpmTasks('grunt-contrib-concat')
-  grunt.loadNpmTasks('grunt-contrib-jshint')
-  grunt.loadNpmTasks('grunt-contrib-uglify')
+  var BUILTINS = ['events', 'path', '_process']
+
+  require('load-grunt-tasks')(grunt);
 
   grunt.initConfig({
 
       pkg: grunt.file.readJSON('package.json')
     , meta: {
-          banner: 
+          banner:
             '/*!\n\n  <%= pkg.name %>.js v<%= pkg.version %> - ' +
             '<%= grunt.template.today("yyyy-mm-dd") %>\n' +
             '  (c) <%= grunt.template.today("yyyy") %> - <%= pkg.author %>\n' +
@@ -76,6 +75,37 @@ module.exports = function (grunt) {
           }
         , all: ['*.js', 'lib/*.js', 'test/spec/unit/*.js']
       }
+    , browserify: {
+      build: {
+        files: {
+          'build/bundle.js': 'index.js'
+        },
+        options: {
+          exclude: ['webworker-threads'],
+          browserifyOptions: {
+            builtins: BUILTINS,
+            standalone: 'otr'
+          }
+        }
+      },
+      min: {
+        files: {
+          'build/bundle.min.js': 'index.js'
+        },
+        options: {
+          exclude: ['webworker-threads'],
+          configure: function(bundle) {
+            bundle.transform({
+              global: true
+            }, 'uglifyify')
+          },
+          browserifyOptions: {
+            builtins: BUILTINS,
+            standalone: 'otr'
+          }
+        }
+      }
+    }
   })
 
   grunt.registerTask('copy_dep', function () {
