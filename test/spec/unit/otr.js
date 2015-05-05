@@ -5,6 +5,17 @@ var assert = require('assert')
   , HLP = require('../../../lib/helpers.js')
   , Parse = require('../../../lib/parse.js')
   , OTR = require('../../../lib/otr.js')
+  , errEvents = ['warn', 'error']
+
+function assertIfErr(err) {
+  assert.ifError(err)
+}
+
+function onErrOrWarn(emitter, handler) {
+  errEvents.forEach(function(event) {
+    emitter.on(event, handler)
+  })
+}
 
 describe('OTR', function () {
   "use strict";
@@ -86,7 +97,7 @@ describe('OTR', function () {
 
   it('plaintext does not start ake', function (done) {
     var userB = new OTR({ priv: keys.userB })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('ui', function (msg, enc) {
       assert.equal('hi', msg)
       assert.ok(!enc)
@@ -96,7 +107,7 @@ describe('OTR', function () {
     })
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
     var userA = new OTR({ priv: keys.userA })
-    userA.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userA, assertIfErr)
     userA.on('status', function (state) {
       if (state === CONST.STATUS_AKE_INIT) {
         assert.fail("Ake init.")
@@ -109,7 +120,7 @@ describe('OTR', function () {
 
   it('whitespace start ake', function (done) {
     var userB = new OTR({ priv: keys.userB })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('ui', function (msg) { assert.equal('hi', msg) })
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
     userB.on('status', function (state) {
@@ -129,7 +140,7 @@ describe('OTR', function () {
 
   it('should go through the ake dance', function (done) {
     var userA, userB, counter = 0
-    var err = function (err) { assert.ifError(err) }
+    var err = assertIfErr
     var ui = function (msg) { assert.ok(!msg, msg) }
     var checkstate = function (user) {
       switch (counter) {
@@ -168,14 +179,14 @@ describe('OTR', function () {
     }
     userA = new OTR({ priv: keys.userA })
     userA.on('ui', ui)
-    userA.on('error', err)
+    onErrOrWarn(userA, err)
     userA.on('io', function (msg) {
       checkstate(userB)
       userB.receiveMsg(msg)
     })
     userB = new OTR({ priv: keys.userB })
     userB.on('ui', ui)
-    userB.on('error', err)
+    onErrOrWarn(userB, err)
     userB.on('io', function (msg) {
       checkstate(userA)
       userA.receiveMsg(msg)
@@ -195,17 +206,17 @@ describe('OTR', function () {
   })
 
   it('v2, should go through the ake dance', function (done) {
-    var err = function (err) { assert.ifError(err) }
+    var err = assertIfErr
     var ui = function (msg) { assert.ok(!msg, msg) }
     var userA = new OTR({ priv: keys.userA })
     userA.on('ui', ui)
-    userA.on('error', err)
+    onErrOrWarn(userA, err)
     userA.on('io', function (msg) {
       userB.receiveMsg(msg)
     })
     var userB = new OTR({ priv: keys.userB })
     userB.on('ui', ui)
-    userB.on('error', err)
+    onErrOrWarn(userB, err)
     userB.on('io', function (msg) {
       userA.receiveMsg(msg)
     })
@@ -226,17 +237,17 @@ describe('OTR', function () {
   })
 
   it('should not go through the ake dance', function (done) {
-    var err = function (err) { assert.ifError(err) }
+    var err = assertIfErr
     var ui = function (msg) { assert.ok(!msg, msg) }
     var userA = new OTR({ priv: keys.userA })
     userA.on('ui', ui)
-    userA.on('error', err)
+    onErrOrWarn(userA, err)
     userA.on('io', function (msg) {
       userB.receiveMsg(msg)
     })
     var userB = new OTR({ priv: keys.userB })
     userB.on('ui', ui)
-    userB.on('error', function (err) {
+    onErrOrWarn(userB, function (err) {
       assert.equal(err, "OTR conversation requested, but no compatible protocol version found.")
       assert.equal(userB.msgstate, CONST.MSGSTATE_PLAINTEXT, 'Plaintext')
       assert.equal(userA.msgstate, CONST.MSGSTATE_PLAINTEXT, 'Plaintext')
@@ -268,15 +279,15 @@ describe('OTR', function () {
       if (counter > 7) done()
       else this.sendMsg(msgs[counter])
     }
-    var err = function (err) { assert.ifError(err) } 
+    var err = assertIfErr
     var io = function (msg) { userB.receiveMsg(msg) }
     var userA = new OTR({ priv: keys.userA })
     userA.on('ui', ui.bind(userA))
     userA.on('io', io)
-    userA.on('error', err)
+    onErrOrWarn(userA, err)
     var userB = new OTR({ priv: keys.userB })
     userB.on('ui', ui.bind(userB))
-    userB.on('error', err)
+    onErrOrWarn(userB, err)
     userB.on('io', userA.receiveMsg)
     userA.sendQueryMsg()
     userB.on('status', function (yay) {
@@ -317,7 +328,7 @@ describe('OTR', function () {
     })
     userA.on('io', function (msg) { userB.receiveMsg(msg) })
     userA.on('ui', ui(0))
-    userA.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userA, assertIfErr)
 
     userB = new OTR({
         priv: keys.userB
@@ -325,7 +336,7 @@ describe('OTR', function () {
     })
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
     userB.on('ui', ui(1))
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
 
     userA.ALLOW_V2 = true
     userA.ALLOW_V3 = false
@@ -374,7 +385,7 @@ describe('OTR', function () {
     })
     userA.on('io', function (msg) { userB.receiveMsg(msg) })
     userA.on('ui', ui(0))
-    userA.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userA, assertIfErr)
 
     userB = new OTR({
         send_interval: 20
@@ -382,7 +393,7 @@ describe('OTR', function () {
     })
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
     userB.on('ui', ui(1))
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
 
     userA.ALLOW_V2 = false
     userA.ALLOW_V3 = true
@@ -405,9 +416,12 @@ describe('OTR', function () {
   it('should ignore messages with diff instance tags', function (done) {
     var userB = new OTR({ priv: keys.userB })
     userB.on('ui', function (msg) { assert.ok(!msg, msg) })
-    userB.on('error', function (err, severity) {
+    userB.on('error', assertIfErr)
+    userB.on('warn', function (err, severity) {
+      // backwards compatibility
       assert.equal(severity, 'warn')
     })
+
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
     var userA = new OTR({ priv: keys.userA })
     userA.on('io', userB.receiveMsg)
@@ -429,7 +443,7 @@ describe('OTR', function () {
       assert.equal(m, msg, msg)
       done()
     })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
     var userA = new OTR({ priv: keys.userA })
     userA.on('io', userB.receiveMsg)
@@ -449,7 +463,7 @@ describe('OTR', function () {
       done()
     })
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     var userA = new OTR({ priv: keys.userA })
     userA.on('io', userB.receiveMsg)
     userA.sendMsg(m)
@@ -464,7 +478,7 @@ describe('OTR', function () {
       assert.equal(m, msg, msg)
       done()
     })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
     var userA = new OTR({ priv: keys.userA })
     userA.on('io', userB.receiveMsg)
@@ -475,7 +489,7 @@ describe('OTR', function () {
   it('disconnect when receiving a type 1 TLV', function (done) {
     var userB = new OTR({ priv: keys.userB })
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('status', function (state) {
       if (state === CONST.STATUS_AKE_SUCCESS) {
         assert.equal(userA.msgstate, CONST.MSGSTATE_ENCRYPTED)
@@ -499,7 +513,7 @@ describe('OTR', function () {
     var userB = new OTR({ priv: keys.userB })
     var sent = false
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('status', function (state) {
       if (state === CONST.STATUS_AKE_SUCCESS) {
         assert.equal(userA.msgstate, CONST.MSGSTATE_ENCRYPTED)
@@ -530,7 +544,7 @@ describe('OTR', function () {
     var userB = new OTR({ priv: keys.userB })
     var called = false
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('status', function (state) {
       if (state === CONST.STATUS_AKE_SUCCESS) {
         assert.equal(userA.msgstate, CONST.MSGSTATE_ENCRYPTED)
@@ -557,7 +571,7 @@ describe('OTR', function () {
 
     var userB = new OTR({ priv: keys.userB })
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('status', function (state) {
       if (state === CONST.STATUS_AKE_SUCCESS) {
         assert.equal(userA.msgstate, CONST.MSGSTATE_ENCRYPTED)
@@ -597,11 +611,11 @@ describe('OTR', function () {
         userB.io(m)
       }
     })
-    userB.on('error', function (err) { assert.ifError(err) })
+    onErrOrWarn(userB, assertIfErr)
     userB.on('io', function (msg) { userA.receiveMsg(msg) })
 
     var userA = new OTR({ priv: keys.userA })
-    userA.on('error', function (err) {
+    onErrOrWarn(userA, function (err) {
       assert.ok(err, "We got an error.")
       done()
     })
@@ -625,7 +639,7 @@ describe('OTR', function () {
       assert.ok(msg)
       assert.ifError(enc)
     })
-    userB.on('error', function (err) {
+    onErrOrWarn(userB, function (err) {
       assert.ok(err, "We got an error.")
       done()
     })
@@ -651,7 +665,7 @@ describe('OTR', function () {
 
     userA.sendMsg(m1, m2)
   })
-  
+
   it('should passthrough meta data in encrypted mode', function(done) {
     var m1 = 'text message'
     var m2 = 'meta data'
@@ -674,7 +688,7 @@ describe('OTR', function () {
 
     userB.sendQueryMsg()
   })
-  
+
   it('should passthrough meta data for stored messages', function(done) {
     var m1 = 'text message'
     var m2 = 'meta data'
@@ -727,17 +741,17 @@ describe('OTR', function () {
     this.timeout(5000)
     // issue #47
 
-    var err = function (err) { assert.ifError(err) }
+    var err = assertIfErr
 
     var userA = new OTR({ priv: keys.userA })
     userA.on('io', function (msg) { userB.receiveMsg(msg) })
-    userA.on('error', err)
+    onErrOrWarn(userA, err)
 
     var bIT = OTR.makeInstanceTag()
 
     var userB = new OTR({ priv: keys.userB, instance_tag: bIT })
     userB.on('io', userA.receiveMsg)
-    userB.on('error', err)
+    onErrOrWarn(userB, err)
     var rcvd = 0
     userB.on('ui', function (msg, enc) {
       assert.ok(enc)
@@ -748,7 +762,7 @@ describe('OTR', function () {
         // userB crashed; start over
         userB = new OTR({ priv: keys.userB, instance_tag: bIT })
         userB.on('io', userA.receiveMsg)
-        userB.on('error', err)
+        onErrOrWarn(userB, err)
         userB.on('ui', function (msg, enc) {
           assert.ok(enc)
           rcvd += 1

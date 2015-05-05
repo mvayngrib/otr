@@ -46,6 +46,7 @@ var otr = new OTR({
 otr.on('ui', ui)
 otr.on('io', cb)
 otr.on('error', err)
+otr.on('warn', err)
 otr.on('smp', smp)
 
 xmpp.on('online', function() {

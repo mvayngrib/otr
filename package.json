@@ -40,5 +40,8 @@
     "JC Brand <jc@opkode.com>",
     "Mark Vayngrib <mark.vayngrib@lablz.com>"
   ],
-  "license": "MPL v2.0"
+  "license": "MPL v2.0",
+  "dependencies": {
+    "inherits": "^2.0.1"
+  }
 }
