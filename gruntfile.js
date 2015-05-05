@@ -32,40 +32,6 @@ module.exports = function (grunt) {
             '  Please see: <%= pkg.homepage %>' +
             '\n\n*/\n\n'
       }
-    , concat: {
-          otr: {
-              options: {
-                banner: '<%= meta.banner %>'
-              }
-            , src: [
-                  'etc/header.js'
-                , 'lib/const.js'
-                , 'lib/helpers.js'
-                , 'lib/dsa.js'
-                , 'lib/parse.js'
-                , 'lib/ake.js'
-                , 'lib/sm.js'
-                , 'lib/otr.js'
-                , 'etc/footer.js'
-              ]
-            , dest: 'build/otr.js'
-          }
-        , cryptojs: {
-              src: cryptojs
-            , dest: 'vendor/crypto.js'
-          }
-      }
-    , uglify: {
-        otr: {
-          options: {
-              banner: '<%= meta.banner %>'
-            , mangle: false
-          },
-          files: {
-              'build/otr.min.js': ['build/otr.js']
-          }
-        }
-      }
     , clean: {
         folder: 'build/'
       }
@@ -76,40 +42,42 @@ module.exports = function (grunt) {
         , all: ['*.js', 'lib/*.js', 'test/spec/unit/*.js']
       }
     , browserify: {
-      build: {
-        files: {
-          'build/bundle.js': 'index.js'
-        },
-        options: {
-          exclude: ['webworker-threads'],
-          browserifyOptions: {
-            builtins: BUILTINS,
-            standalone: 'otr'
-          }
-        }
-      },
-      min: {
-        files: {
-          'build/bundle.min.js': 'index.js'
-        },
-        options: {
-          exclude: ['webworker-threads'],
-          configure: function(bundle) {
-            bundle.transform({
-              global: true
-            }, 'uglifyify')
+        dev: {
+          files: {
+            'build/bundle.js': 'index.js'
           },
-          browserifyOptions: {
-            builtins: BUILTINS,
-            standalone: 'otr'
+          options: {
+            banner: '<%= meta.banner %>',
+            exclude: ['webworker-threads'],
+            browserifyOptions: {
+              builtins: BUILTINS,
+              standalone: 'otr'
+            }
+          }
+        },
+        min: {
+          files: {
+            'build/bundle.min.js': 'index.js'
+          },
+          options: {
+            banner: '<%= meta.banner %>',
+            exclude: ['webworker-threads'],
+            configure: function(bundle) {
+              bundle.transform({
+                global: true
+              }, 'uglifyify')
+            },
+            browserifyOptions: {
+              builtins: BUILTINS,
+              standalone: 'otr'
+            }
           }
         }
       }
-    }
   })
 
   grunt.registerTask('copy_dep', function () {
-    var files = ['salsa20.js', 'bigint.js', 'eventemitter.js', 'crypto.js']
+    var files = ['salsa20.js']
       , src = 'vendor/'
       , dest = 'build/dep/'
     files.forEach(function (f) {
@@ -126,9 +94,9 @@ module.exports = function (grunt) {
     })
   })
 
-  grunt.registerTask('otr', ['concat:otr', 'uglify:otr'])
-  grunt.registerTask('dep', ['concat:cryptojs', 'copy_dep'])
+  // grunt.registerTask('otr', ['concat:otr', 'uglify:otr'])
   grunt.registerTask('ww', ['copy_ww'])
-  grunt.registerTask('default', ['clean', 'otr', 'dep', 'ww'])
+  grunt.registerTask('dev', ['clean', 'browserify:dev', 'copy_dep', 'ww'])
+  grunt.registerTask('default', ['clean', 'browserify', 'copy_dep', 'ww'])
 
 }
