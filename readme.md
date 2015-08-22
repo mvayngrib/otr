@@ -107,7 +107,9 @@ method.
 
     var newmsg = "Message to userA."
     var meta = "optional some meta data, like message id"
-    buddy.sendMsg(newmsg, meta)
+    buddy.sendMsg(newmsg, meta, callback)
+
+`callback` is called after the 'io' event is emitted for `newmsg`
 
 **Going encrypted**: Initially, messages are sent in plaintext. To manually
 initiate the authenticated key exchange.

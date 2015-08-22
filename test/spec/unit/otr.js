@@ -469,6 +469,28 @@ describe('OTR', function () {
     userA.sendMsg(m)
   })
 
+  it('should call back after sendMsg', function (done) {
+    var received
+    var m = 'test msg'
+    var userB = new OTR({ priv: keys.userB })
+    userB.on('ui', function (msg) {
+      assert.equal(m, msg, msg)
+      received = true
+    })
+
+    userB.on('io', function (msg) { userA.receiveMsg(msg) })
+    onErrOrWarn(userB, assertIfErr)
+    var userA = new OTR({ priv: keys.userA })
+    userA.on('io', function (msg, meta) {
+      userB.receiveMsg(msg, meta)
+    })
+
+    userA.sendMsg(m, function () {
+      assert.equal(received, true)
+      done()
+    })
+  })
+
   it('should send an encrypted message when required', function (done) {
     var m = 'test some german characters äöüß'
     var userB = new OTR({ priv: keys.userB })
