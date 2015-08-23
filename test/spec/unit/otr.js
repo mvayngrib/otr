@@ -471,6 +471,7 @@ describe('OTR', function () {
 
   it('should call back after sendMsg', function (done) {
     var received
+    var finished
     var m = 'test msg'
     var userB = new OTR({ priv: keys.userB })
     userB.on('ui', function (msg) {
@@ -486,8 +487,11 @@ describe('OTR', function () {
     })
 
     userA.sendMsg(m, function () {
+      assert(!finished, 'sendMsg callback called more than once')
       assert.equal(received, true)
-      done()
+      finished = true
+      // wait to see if callback gets called again
+      setTimeout(done, 1000)
     })
   })
 
