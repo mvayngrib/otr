@@ -1,5 +1,5 @@
 {
-  "name": "otr",
+  "name": "@tradle/otr",
   "version": "0.2.15",
   "description": "Off-the-Record Messaging Protocol",
   "homepage": "https://github.com/arlolra/otr",
