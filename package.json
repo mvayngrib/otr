@@ -44,6 +44,7 @@
   ],
   "license": "MPL v2.0",
   "dependencies": {
+    "debug": "^2.2.0",
     "inherits": "^2.0.1"
   }
 }
