@@ -1,6 +1,6 @@
 {
   "name": "@tradle/otr",
-  "version": "0.2.16",
+  "version": "0.2.17",
   "description": "Off-the-Record Messaging Protocol",
   "homepage": "https://github.com/arlolra/otr",
   "main": "index.js",
